@@ -1,19 +1,38 @@
+from typing import List
+
 import numpy as np
-import random
-import pickle
 import os
+import pickle
+import random
+import time
+
 from data_reader import load_training
 
 class Perceptron:
-    def __init__(self, size, U):
-        random.seed()
+    u: List[List[np.ndarray | int]] = None
+    """
+    Represents the universal set of data. Each member of the list is another list.
+    member[0] is the numpy array.
+    member[1] is the p value whether or not a given member should be positive or negative.
+    """
+    w: np.ndarray = None
+    """Represents the array of weights of the perceptron"""
+    converged = False
+    """Represents whether the data has converged or not under the current weight array"""
+    iter = 0
+    """Represents the total number of iterations of the process loop"""
+    
+    def __init__(self, U):
+        random.seed(time.time() * 1000)
         self.u = U
-        self.w = np.array([random.randint(0, 100) for i in range(size)])
+        self.w = np.array([random.randint(0, 100) for i in range(28 * 28 + 1)])
         self.converged = False
         self.iter = 0
     
-    def _process(self, s):
-        x, p = s
+    def _process_point(self, point_info):
+        # x is the array of data points
+        # p is if it is positive or negative (1 = positive, 0 = negative)
+        x, p = point_info
         d = np.dot(self.w, x)
         
         if p == 1 and d < 0:
@@ -26,16 +45,16 @@ class Perceptron:
         return True, 0
 
     def update_converged(self):
-        for s in self.u:
-            if not self._process(s)[0]:
+        for point_info in self.u:
+            if not self._process_point(point_info)[0]:
                 return 
         self.converged = True
 
     def process(self):
         while not self.converged:
-            s = self.u[random.randint(0, len(self.u) - 1)]
-            x, _ = s
-            match, pm = self._process(s)
+            point_info = self.u[random.randint(0, len(self.u) - 1)]
+            x, _ = point_info
+            match, pm = self._process_point(point_info)
             
             if not match:
                 self.w = self.w + (pm * x)
@@ -45,7 +64,7 @@ class Perceptron:
     
 # Load the data
 print('Processing data...')
-perc = Perceptron(*load_training())
+perc = Perceptron(load_training())
 perc.process()
 
 # Create output folder
