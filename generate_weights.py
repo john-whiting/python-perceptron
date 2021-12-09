@@ -1,6 +1,7 @@
 import numpy as np
 import random
 import pickle
+import os
 from data_reader import load_training
 
 class Perceptron:
@@ -47,6 +48,10 @@ print('Processing data...')
 perc = Perceptron(*load_training())
 perc.process()
 
+# Create output folder
+if not os.path.exists('output'):
+    os.mkdir('output')
+    
 # Save the weights for testing
 f = open('output/weights.pkl', 'wb')
 pickle.dump(perc.w, f)
